@@ -1,3 +1,8 @@
+# added by marcelo-m7
+env/
+venv/
+
+
 # sphinx build directories
 _build/
 
@@ -51,3 +56,4 @@ package.json
 /man/
 /share/
 /src/
+.github/copilot-instructions.md
