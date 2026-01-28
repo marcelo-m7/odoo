@@ -1,23 +1,77 @@
 
 # Odoo Development Environment Setup
 
+This guide covers environment setup for **Odoo 19.0** using modern Python packaging tools.
+
 ## Prerequisites
 
 ### System Requirements
-- **Python 3.10+** - Download from [python.org](https://www.python.org/) or use `py -3.10` on Windows
-- **PostgreSQL 12+** - Download from [postgresql.org](https://www.postgresql.org/download/)
+- **Python 3.10–3.13** - [Download from python.org](https://www.python.org/)
+- **PostgreSQL 13+** - [Download from postgresql.org](https://www.postgresql.org/download/)
 - **Git** - For version control
-- **Visual Studio Code C++ Build Tools** (Windows only) - For psycopg2 compilation:
-  - Download from [Visual Studio Tools](https://visualstudio.microsoft.com/downloads/)
+- **uv** (Recommended) - Modern Python package manager - [Installation guide](https://docs.astral.sh/uv/getting-started/installation/)
+- **Visual Studio C++ Build Tools** (Windows only) - For compiling native extensions:
+  - [Download from Visual Studio](https://visualstudio.microsoft.com/downloads/)
   - Select "Desktop development with C++"
 
-### Required Tools
-- ruff - Python linter/formatter (automatically configured)
-- setuptools & wheel - Python packaging tools
+### Platform-Specific Notes
+- **Linux/macOS:** Full support including async I/O (`gevent`, `greenlet`) and LDAP
+- **Windows:** Async features use threading; LDAP unavailable (use WSL for LDAP)
 
 ---
 
-## Installation Steps
+## Quick Start with uv (Recommended)
+
+### 1. Install uv Package Manager
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Alternative: via pip
+pip install uv
+```
+
+### 2. Create Virtual Environment
+```bash
+# uv creates and manages venv automatically
+uv venv
+
+# Activate the environment
+# Windows
+.venv\Scripts\activate
+
+# Linux/macOS
+source .venv/bin/activate
+```
+
+### 3. Install Odoo + Dependencies
+```bash
+# Install all core dependencies (recommended)
+uv pip install -e .
+
+# Or install with development tools (ruff, pytest, freezegun)
+uv pip install -e ".[dev]"
+
+# Or install with LDAP support (Linux/macOS only)
+uv pip install -e ".[ldap]"
+
+# Or all extras combined
+uv pip install -e ".[dev,ldap,test]"
+```
+
+### 4. Verify Installation
+```bash
+python -c "import odoo; print(f'Odoo {odoo.release.version} installed successfully')"
+```
+
+---
+
+## Alternative: Setup with pip (Legacy)
+
+If you prefer the traditional pip workflow:
 
 ### 1. Create Virtual Environment
 ```bash
@@ -36,23 +90,28 @@ pip install setuptools wheel
 pip install -r requirements.txt
 ```
 
-### 3. Set Up PostgreSQL Database
+---
+
+## PostgreSQL Database Setup (All Methods)
+
+### Create Database User
 ```bash
-# Create a database user for Odoo (on PostgreSQL)
+# Via PostgreSQL command line
 createuser -P odoo  # Enter password when prompted
 
-# Or via Windows/PostgreSQL console:
+# Or via PostgreSQL console (psql)
 CREATE USER odoo WITH PASSWORD 'odoo';
 CREATE DATABASE odoo_local OWNER odoo;
 GRANT ALL PRIVILEGES ON DATABASE odoo_local TO odoo;
 ```
 
-### 4. Initialize Database with Base Module
+### Initialize Odoo Database
 ```bash
-# Activate environment first
-source env/bin/activate  # or env\Scripts\activate on Windows
+# Ensure virtual environment is activated first
+# Windows: .venv\Scripts\activate or env\Scripts\activate
+# Linux/macOS: source .venv/bin/activate or source env/bin/activate
 
-# Initialize database (installs base module)
+# Initialize database with base module
 python odoo-bin \
   --db-filter=odoo_local \
   -r odoo \
@@ -63,19 +122,23 @@ python odoo-bin \
 ```
 
 **Parameters explained:**
-- `-r` / `--db_user`: PostgreSQL username (default: odoo)
+- `-r` / `--db_user`: PostgreSQL username
 - `-w` / `--db_password`: PostgreSQL password
 - `--db-filter`: Only load matching database names
-- `--addons-path`: Path to addon modules
-- `-d`: Database name to create/initialize
-- `-i`: Modules to install (comma-separated)
+- `--addons-path`: Path to addon modules directory
+- `-d`: Database name to create/use
+- `-i`: Comma-separated list of modules to install
 
 ---
 
 ## Running Odoo
 
-### Development Server
+### Start Development Server
 ```bash
+# Simple start (uses default config)
+python odoo-bin -d odoo_local
+
+# With explicit configuration
 python odoo-bin \
   --db-filter=odoo_local \
   -r odoo \
@@ -84,33 +147,31 @@ python odoo-bin \
   -d odoo_local
 ```
 
-**Access the application at:** http://localhost:8069
+**Access at:** http://localhost:8069
 
 ### Install Additional Modules
 ```bash
-python odoo-bin \
-  -r odoo \
-  -w odoo \
-  -d odoo_local \
-  -i crm,sale,account
+# Install CRM, Sales, and Accounting modules
+python odoo-bin -r odoo -w odoo -d odoo_local -i crm,sale,account
+
+# Upgrade existing module after code changes
+python odoo-bin -r odoo -w odoo -d odoo_local -u crm --stop-after-init
 ```
 
 ### Run Tests
 ```bash
-python odoo-bin \
-  -r odoo \
-  -w odoo \
-  -d test_db \
-  --test-enable \
-  --stop-after-init
+# Run all tests for a module
+python odoo-bin -r odoo -w odoo -d test_db --test-enable --stop-after-init
+
+# Run tests with specific tags
+python odoo-bin -d test_db --test-tags=/crm --stop-after-init
 ```
 
 ---
 
-## Code Quality
+## Code Quality & Linting
 
-### Linting & Formatting
-Odoo uses **ruff** for code style enforcement. Check the [ruff.toml](ruff.toml) for rules.
+Odoo uses **ruff** for code style enforcement (see [ruff.toml](ruff.toml)).
 
 ```bash
 # Format code
@@ -118,37 +179,71 @@ ruff format addons/my_addon
 
 # Check for violations
 ruff check addons/my_addon
+
+# Auto-fix issues
+ruff check --fix addons/my_addon
 ```
 
 ---
 
 ## Troubleshooting
 
-### "psycopg2" Installation Fails (Windows)
-**Error:** `error: Microsoft Visual C++ 14.0 or greater is required`
-- **Solution:** Install Visual Studio C++ Build Tools (see Prerequisites)
-- Alternative: Install pre-compiled wheel: `pip install --only-binary :all: psycopg2-binary`
+### uv-specific Issues
 
-### "Database does not exist" Error
+#### "uv: command not found"
+```bash
+# Verify uv is installed
+uv --version
+
+# If not, reinstall
+pip install uv
+```
+
+#### Can't resolve dependencies with uv
+```bash
+# Clear uv cache
+uv cache clean
+
+# Reinstall with verbose output
+uv pip install -e . -v
+```
+
+### Common Installation Issues
+
+#### "psycopg2" Installation Fails (Windows)
+**Error:** `error: Microsoft Visual C++ 14.0 or greater is required`
+
+**Solutions:**
+1. Install Visual Studio C++ Build Tools (see Prerequisites)
+2. Use pre-compiled binary: `uv pip install psycopg2-binary` (instead of psycopg2)
+
+#### "Database does not exist" Error
 ```bash
 # Create and initialize database
 python odoo-bin -r odoo -w odoo --addons-path=addons -d odoo_local -i base
 ```
 
-### PostgreSQL Connection Refused
+#### PostgreSQL Connection Refused
 - Verify PostgreSQL is running: `psql -U odoo -d postgres`
-- Check credentials in command match PostgreSQL user
-- On Windows, PostgreSQL may run as a service (check Services app)
+- Check credentials match PostgreSQL user
+- **Windows:** Check if PostgreSQL service is running (Services app)
+- **Linux:** `sudo systemctl status postgresql`
 
-### Port 8069 Already in Use
+#### Port 8069 Already in Use
 ```bash
 # Use different port
 python odoo-bin --xmlrpc-port=8070 -d odoo_local
 ```
 
-### "No module named 'odoo'" Error
-- Ensure virtual environment is activated: `env\Scripts\activate` (Windows) or `source env/bin/activate` (Linux/macOS)
-- Verify dependencies are installed: `pip install -r requirements.txt`
+#### "No module named 'odoo'" Error
+```bash
+# Activate virtual environment
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
+
+# Reinstall in editable mode
+uv pip install -e .
+```
 
 ---
 
@@ -156,63 +251,80 @@ python odoo-bin --xmlrpc-port=8070 -d odoo_local
 
 ```
 odoo/
-├── odoo/              # Core framework (ORM, HTTP, models, fields)
-├── addons/            # Business logic modules (CRM, Sales, Accounting, etc.)
-├── setup/             # Installation scripts
-├── odoo-bin           # CLI entry point
-├── requirements.txt   # Python dependencies
-├── ruff.toml         # Code style rules
-└── SETUP.md          # This file
+├── .github/
+│   └── copilot-instructions.md  # AI agent development guide
+├── odoo/                         # Core framework (ORM, HTTP, models, fields)
+├── addons/                       # Business modules (CRM, Sales, Accounting, etc.)
+├── setup/                        # Installation scripts
+├── odoo-bin                      # CLI entry point
+├── pyproject.toml               # Modern dependency management (recommended)
+├── requirements.txt             # Legacy pip dependencies
+├── ruff.toml                    # Code style rules
+├── setup.py                     # Legacy setuptools config
+└── SETUP.md                     # This file
 ```
 
 ---
 
-## Useful Commands
+## Development Workflow
+
+### Useful Commands
 
 ```bash
 # List installed modules
 python odoo-bin -d odoo_local --list
 
-# Upgrade a module (reload after code changes)
+# Upgrade module after code changes
 python odoo-bin -r odoo -w odoo -d odoo_local -u crm --stop-after-init
 
 # Database shell (PostgreSQL)
 psql -U odoo -d odoo_local
 
 # Clear cache and restart
-python odoo-bin --db-filter=odoo_local -r odoo -w odoo -d odoo_local --invalidate-cache
+python odoo-bin --invalidate-cache -d odoo_local
+
+# Generate requirements.txt from pyproject.toml (if needed)
+uv pip compile pyproject.toml -o requirements.txt
+```
+
+### Working with Dependencies
+
+```bash
+# Add new dependency to pyproject.toml, then:
+uv pip install -e .
+
+# Update all dependencies to latest compatible versions
+uv pip install --upgrade -e .
+
+# Check outdated packages
+uv pip list --outdated
 ```
 
 ---
 
-# Commits tags:
+## Next Steps
 
-Tags are used to prefix your commit. They should be one of the following
+1. **Read Development Guide:** [.github/copilot-instructions.md](.github/copilot-instructions.md)
+2. **Explore Sample Addons:** Check `addons/crm/` or `addons/sale/` for patterns
+3. **Run Tests:** Each addon has a `tests/` directory
+4. **Official Docs:** [Odoo Developer Documentation](https://www.odoo.com/documentation/master/developer/)
 
-[FIX] for bug fixes: mostly used in stable version but also valid if you are fixing a recent bug in development version;
+---
 
-[REF] for refactoring: when a feature is heavily rewritten;
+## Commit Tags Convention
 
-[ADD] for adding new modules;
+Tags prefix your commits for categorization:
 
-[REM] for removing resources: removing dead code, removing views, removing modules, …;
-
-[REV] for reverting commits: if a commit causes issues or is not wanted reverting it is done using this tag;
-
-[MOV] for moving files: use git move and do not change content of moved file otherwise Git may loose track and history of the file; also used when moving code from one file to another;
-
-[REL] for release commits: new major or minor stable versions;
-
-[IMP] for improvements: most of the changes done in development version are incremental improvements not related to another tag;
-
-[MERGE] for merge commits: used in forward port of bug fixes but also as main commit for feature involving several separated commits;
-
-[CLA] for signing the Odoo Individual Contributor License;
-
-[I18N] for changes in translation files;
-
-[PERF] for performance patches;
-
-[CLN] for code cleanup;
-
-[LINT] for linting passes;
+- **[FIX]** - Bug fixes (stable or recent dev bugs)
+- **[REF]** - Refactoring (heavy feature rewrites)
+- **[ADD]** - Adding new modules
+- **[REM]** - Removing resources (dead code, views, modules)
+- **[REV]** - Reverting commits
+- **[MOV]** - Moving files (use `git mv`, preserve history)
+- **[REL]** - Release commits (major/minor versions)
+- **[IMP]** - Improvements (most dev changes)
+- **[MERGE]** - Merge commits (forward ports, multi-commit features)
+- **[I18N]** - Translation file changes
+- **[PERF]** - Performance patches
+- **[CLN]** - Code cleanup
+- **[LINT]** - Linting passes

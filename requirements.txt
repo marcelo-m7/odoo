@@ -1,3 +1,26 @@
+# =============================================================================
+# LEGACY DEPENDENCY FILE - CONSIDER USING pyproject.toml
+# =============================================================================
+#
+# This file is maintained for backward compatibility with pip-based workflows.
+# For new installations, we recommend using the modern pyproject.toml approach:
+#
+#   1. Install uv package manager: https://docs.astral.sh/uv/
+#   2. Run: uv pip install -e .
+#   3. For dev tools: uv pip install -e ".[dev]"
+#   4. For LDAP (Linux/macOS): uv pip install -e ".[ldap]"
+#
+# Benefits of pyproject.toml + uv:
+#   - 10-100x faster dependency resolution
+#   - Built-in support for optional dependencies
+#   - Standard Python packaging format (PEP 517/518/621)
+#   - Better reproducibility with lock files
+#
+# Traditional pip installation still works:
+#   pip install -r requirements.txt
+#
+# =============================================================================
+
 # The officially supported versions of the following packages are their
 # python3-* equivalent distributed in Ubuntu 24.04 and Debian 12
 asn1crypto==1.4.0 ; python_version < '3.11'

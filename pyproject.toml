@@ -1,0 +1,219 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "odoo"
+version = "19.0.0"
+description = "Odoo Server - Complete ERP and CRM"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = {text = "LGPL-3"}
+authors = [
+    {name = "Odoo S.A.", email = "info@odoo.com"}
+]
+keywords = [
+    "erp", "crm", "accounting", "inventory", "project", "sales", "marketing",
+    "hr", "pos", "warehouse", "manufacturing", "ecommerce", "website"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    # Cryptography & Security
+    'asn1crypto==1.4.0; python_version < "3.11"',
+    'asn1crypto==1.5.1; python_version >= "3.11"',
+    'cryptography==3.4.8; python_version < "3.12"',
+    'cryptography==42.0.8; python_version >= "3.12"',
+    'pyopenssl==21.0.0; python_version < "3.12"',
+    'pyopenssl==24.1.0; python_version >= "3.12"',
+    
+    # Internationalization & Localization
+    'Babel==2.9.1; python_version < "3.11"',
+    'Babel==2.10.3; python_version >= "3.11" and python_version < "3.13"',
+    'Babel==2.17.0; python_version >= "3.13"',
+    'pytz',
+    
+    # Text Processing & Encoding
+    'chardet==4.0.0; python_version < "3.11"',
+    'chardet==5.2.0; python_version >= "3.11"',
+    'idna==2.10; python_version < "3.12"',
+    'idna==3.6; python_version >= "3.12"',
+    'docutils==0.17; python_version < "3.11"',
+    'docutils==0.20.1; python_version >= "3.11"',
+    
+    # Data Serialization
+    'cbor2==5.4.2; python_version < "3.12"',
+    'cbor2==5.6.2; python_version >= "3.12"',
+    
+    # XML & HTML Processing
+    'lxml==4.8.0; python_version <= "3.10"',
+    'lxml==4.9.3; python_version > "3.10" and python_version < "3.12"',
+    'lxml==5.2.1; python_version >= "3.12"',
+    'lxml-html-clean; python_version >= "3.12"',
+    
+    # Excel & Spreadsheet Processing
+    'openpyxl==3.0.9; python_version < "3.12"',
+    'openpyxl==3.1.2; python_version >= "3.12"',
+    'xlrd==1.2.0; python_version < "3.12"',
+    'xlrd==2.0.1; python_version >= "3.12"',
+    'xlwt==1.3.0',
+    'XlsxWriter==3.0.2; python_version < "3.12"',
+    'XlsxWriter==3.1.9; python_version >= "3.12"',
+    
+    # PDF Processing
+    'PyPDF2==1.26.0; python_version <= "3.10"',
+    'PyPDF2==2.12.1; python_version > "3.10" and python_version < "3.13"',
+    'PyPDF==5.4.0; python_version >= "3.13"',
+    
+    # Document & Template Generation
+    'Jinja2==3.0.3; python_version <= "3.10"',
+    'Jinja2==3.1.2; python_version > "3.10"',
+    'MarkupSafe==2.0.1; python_version <= "3.10"',
+    'MarkupSafe==2.1.2; python_version > "3.10" and python_version < "3.12"',
+    'MarkupSafe==2.1.5; python_version >= "3.12"',
+    'reportlab==3.6.8; python_version <= "3.10"',
+    'reportlab==3.6.12; python_version > "3.10" and python_version < "3.12"',
+    'reportlab==4.1.0; python_version >= "3.12"',
+    'rl-renderPM==4.0.3; sys_platform == "win32" and python_version >= "3.12"',
+    
+    # Image & Media Processing
+    'Pillow==9.0.1; python_version <= "3.10"',
+    'Pillow==9.4.0; python_version > "3.10" and python_version < "3.12"',
+    'Pillow==10.2.0; python_version >= "3.12" and python_version < "3.13"',
+    'Pillow==11.1.0; python_version >= "3.13"',
+    'qrcode==7.3.1; python_version < "3.11"',
+    'qrcode==7.4.2; python_version >= "3.11"',
+    
+    # Web Framework & HTTP
+    'Werkzeug==2.0.2; python_version <= "3.10"',
+    'Werkzeug==2.2.2; python_version > "3.10" and python_version < "3.12"',
+    'Werkzeug==3.0.1; python_version >= "3.12"',
+    'requests==2.25.1; python_version < "3.11"',
+    'requests==2.31.0; python_version >= "3.11"',
+    'urllib3==1.26.5; python_version < "3.12"',
+    'urllib3==2.0.7; python_version >= "3.12"',
+    
+    # Calendar & Contact Formats
+    'vobject==0.9.6.1',
+    
+    # Database Adapter
+    'psycopg2==2.9.2; python_version == "3.10"',
+    'psycopg2==2.9.5; python_version == "3.11"',
+    'psycopg2==2.9.9; python_version >= "3.12" and python_version < "3.13"',
+    'psycopg2==2.9.10; python_version >= "3.13"',
+    
+    # System Utilities
+    'psutil==5.9.0; python_version <= "3.10"',
+    'psutil==5.9.4; python_version > "3.10" and python_version < "3.12"',
+    'psutil==5.9.8; python_version >= "3.12"',
+    
+    # Date & Time Processing
+    'python-dateutil==2.8.1; python_version < "3.11"',
+    'python-dateutil==2.8.2; python_version >= "3.11"',
+    
+    # Number & Text Processing
+    'python-stdnum==1.17; python_version < "3.11"',
+    'python-stdnum==1.19; python_version >= "3.11"',
+    'num2words==0.5.10; python_version < "3.12"',
+    'num2words==0.5.13; python_version >= "3.12"',
+    
+    # Authentication & Security
+    'passlib==1.7.4',
+    
+    # Localization & Translation
+    'polib==1.1.1',
+    
+    # Hardware Communication
+    'pyserial==3.5',
+    'pyusb>=1.0.0b1',
+    
+    # Geographic & Financial Data
+    'geoip2==2.9.0',
+    'ofxparse==0.21',
+    
+    # SOAP Web Services
+    'zeep==4.1.0; python_version < "3.11"',
+    'zeep==4.2.1; python_version >= "3.11" and python_version < "3.13"',
+    'zeep==4.3.1; python_version >= "3.13"',
+    
+    # JavaScript & CSS Processing
+    'rjsmin==1.1.0; python_version < "3.11"',
+    'rjsmin==1.2.0; python_version >= "3.11"',
+    'libsass==0.22.0; sys_platform == "win32" and python_version < "3.11"',
+    'libsass==0.20.1; sys_platform != "win32" and python_version < "3.11"',
+    'libsass==0.22.0; python_version >= "3.11"',
+    
+    # Async I/O & Concurrency (Linux/macOS only)
+    'gevent==21.8.0; sys_platform != "win32" and python_version == "3.10"',
+    'gevent==22.10.2; sys_platform != "win32" and python_version > "3.10" and python_version < "3.12"',
+    'gevent==24.2.1; sys_platform != "win32" and python_version >= "3.12" and python_version < "3.13"',
+    'gevent==24.11.1; sys_platform != "win32" and python_version >= "3.13"',
+    'greenlet==1.1.2; sys_platform != "win32" and python_version == "3.10"',
+    'greenlet==2.0.2; sys_platform != "win32" and python_version > "3.10" and python_version < "3.12"',
+    'greenlet==3.0.3; sys_platform != "win32" and python_version >= "3.12" and python_version < "3.13"',
+    'greenlet==3.1.1; sys_platform != "win32" and python_version >= "3.13"',
+    
+    # Platform-Specific Dependencies
+    'pypiwin32; sys_platform == "win32"',
+    'python-magic==0.4.24; sys_platform != "win32" and python_version < "3.12"',
+    'python-magic==0.4.27; sys_platform != "win32" and python_version >= "3.12"',
+]
+
+[project.optional-dependencies]
+ldap = [
+    "python-ldap==3.4.0; sys_platform != 'win32' and python_version < '3.12'",
+    "python-ldap==3.4.4; sys_platform != 'win32' and python_version >= '3.12'",
+]
+dev = [
+    "freezegun==1.1.0; python_version < '3.11'",
+    "freezegun==1.2.1; python_version >= '3.11' and python_version < '3.13'",
+    "freezegun==1.5.1; python_version >= '3.13'",
+    "ruff>=0.11.4",
+    "pytest>=7.0",
+]
+test = [
+    "freezegun==1.1.0; python_version < '3.11'",
+    "freezegun==1.2.1; python_version >= '3.11' and python_version < '3.13'",
+    "freezegun==1.5.1; python_version >= '3.13'",
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://www.odoo.com"
+Documentation = "https://www.odoo.com/documentation/master"
+Repository = "https://github.com/odoo/odoo"
+"Bug Tracker" = "https://github.com/odoo/odoo/issues"
+
+[project.scripts]
+odoo-bin = "odoo.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["odoo"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/odoo",
+    "/addons",
+    "/setup",
+]
+
+[tool.uv]
+# Modern Python package manager configuration
+# https://docs.astral.sh/uv/
+
+[tool.uv.pip]
+# Use highest compatible versions by default
+resolution = "highest"
+
+[tool.ruff]
+# Linting rules are defined in ruff.toml
+target-version = "py310"

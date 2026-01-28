@@ -21,7 +21,7 @@ from odoo.tools import config as conf  # noqa: F401
 
 # Path to the Odoo Addons repository (comma-separated for
 # multiple locations)
-#conf['addons_path'] = './odoo/addons,./addons'
+conf['addons_path'] = './odoo/addons,./addons, ./my-addons' 
 
 # Optional database config if not using local socket
 #conf['db_name'] = 'mycompany'
