@@ -26,7 +26,7 @@ load_dotenv()
 
 # Path to the Odoo Addons repository (comma-separated for
 # multiple locations)
-conf['addons_path'] = './odoo/addons,./addons, ./my-addons' 
+conf['addons_path'] = './odoo/addons,./addons, ./custom_addons' 
 
 # DB via .env.local / env vars
 conf["db_host"] = os.getenv("ODOO_DB_HOST", os.getenv("DB_HOST", "127.0.0.1"))
