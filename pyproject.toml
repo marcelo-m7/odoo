@@ -166,6 +166,9 @@ dependencies = [
     'pypiwin32; sys_platform == "win32"',
     'python-magic==0.4.24; sys_platform != "win32" and python_version < "3.12"',
     'python-magic==0.4.27; sys_platform != "win32" and python_version >= "3.12"',
+
+    # Dot env file support
+    "python-dotenv>=1.2.1; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]

@@ -12,6 +12,8 @@
 # Then the following command should run:
 #   $ gunicorn odoo.http:root --pythonpath . -c odoo-wsgi.py
 
+from dotenv import load_dotenv
+import os
 from odoo.http import root as application  # noqa: F401
 from odoo.tools import config as conf  # noqa: F401
 
@@ -19,16 +21,23 @@ from odoo.tools import config as conf  # noqa: F401
 # Common
 # ----------------------------------------------------------
 
+# Load environment variables from a .env file
+load_dotenv()
+
 # Path to the Odoo Addons repository (comma-separated for
 # multiple locations)
-#conf['addons_path'] = './odoo/addons,./addons'
+conf['addons_path'] = './odoo/addons,./addons, ./my-addons' 
 
-# Optional database config if not using local socket
-#conf['db_name'] = 'mycompany'
-#conf['db_host'] = 'localhost'
-#conf['db_user'] = 'foo'
-#conf['db_port'] = 5432
-#conf['db_password'] = 'secret'
+# DB via .env.local / env vars
+conf["db_host"] = os.getenv("ODOO_DB_HOST", os.getenv("DB_HOST", "127.0.0.1"))
+conf["db_port"] = int(os.getenv("ODOO_DB_PORT", os.getenv("DB_PORT", "5432")))
+conf["db_user"] = os.getenv("ODOO_DB_USER", os.getenv("DB_USER", "odoo"))
+conf["db_password"] = os.getenv("ODOO_DB_PASSWORD", os.getenv("DB_PASSWORD", ""))
+
+# opcional: se você quiser travar num database específico
+db_name = os.getenv("ODOO_DB_NAME", os.getenv("DB_NAME"))
+if db_name:
+    conf["db_name"] = db_name
 
 # ----------------------------------------------------------
 # Initializing the server
