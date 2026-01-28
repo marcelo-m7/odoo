@@ -1,0 +1,10 @@
+[options]
+# Optional database config if not using local socket
+db_name = mycompany
+db_host = localhost
+db_user = foo
+db_port = 5432
+db_password = secret
+
+addons_path = ./odoo/addons,./addons, ./custom_addons
+admin_passwd = admin
