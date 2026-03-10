@@ -43,7 +43,6 @@ export class SeparatorPlugin extends Plugin {
         /** Handlers */
         selectionchange_handlers: this.handleSelectionInHr.bind(this),
         deselect_custom_selected_nodes_handlers: this.deselectHR.bind(this),
-        clean_handlers: this.deselectHR.bind(this),
         clean_for_save_handlers: ({ root }) => {
             this.deselectHR(root);
         },
@@ -85,8 +84,11 @@ export class SeparatorPlugin extends Plugin {
         }
     }
 
-    handleSelectionInHr() {
+    handleSelectionInHr(selectionData) {
         this.deselectHR();
+        if (!selectionData.documentSelectionIsInEditable) {
+            return;
+        }
         const targetedNodes = this.dependencies.selection.getTargetedNodes();
         for (const node of targetedNodes) {
             if (node.nodeName === "HR") {

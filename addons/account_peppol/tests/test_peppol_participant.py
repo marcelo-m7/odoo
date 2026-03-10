@@ -3,6 +3,7 @@ from base64 import b64encode
 from odoo import Command
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import tagged, freeze_time
+from odoo.tests.form import Form
 from odoo.tools.misc import file_open
 
 from odoo.addons.account_peppol.tests.common import PeppolConnectorCommon
@@ -83,6 +84,7 @@ class TestPeppolParticipant(PeppolConnectorCommon):
 
         # receiver -> not_registered.
         with self._mock_requests([
+            self._mock_participant_status('receiver'),
             self._mock_get_all_documents(),
             self._mock_cancel_peppol_registration(),
         ]):
@@ -200,6 +202,7 @@ class TestPeppolParticipant(PeppolConnectorCommon):
 
         # Disconnect from the network.
         with self._mock_requests([
+            self._mock_participant_status('sender'),
             self._mock_cancel_peppol_registration(),
         ]):
             config_wizard = self.env['peppol.config.wizard'].with_context(allowed_company_ids=branch.ids).create({})
@@ -298,6 +301,8 @@ class TestPeppolParticipant(PeppolConnectorCommon):
         # Disconnect from the network.
         with self._mock_requests([
             self._mock_cancel_peppol_registration(),
+            self._mock_get_all_documents(),
+            self._mock_participant_status('sender'),
         ]):
             config_wizard = self.env['peppol.config.wizard'].with_context(allowed_company_ids=branch.ids).create({})
             config_wizard.button_peppol_unregister()
@@ -319,3 +324,67 @@ class TestPeppolParticipant(PeppolConnectorCommon):
             'phone_number': self.env.company.account_peppol_phone_number,
             'contact_email': self.env.company.account_peppol_contact_email,
         }])
+
+    def test_deregister_with_client_gone_error(self):
+        """Test deregistration succeeds even when proxy returns client_gone error"""
+        with self._mock_requests([
+            self._mock_can_connect(),
+            self._mock_lookup_participant(),
+            self._mock_connect(peppol_state='smp_registration'),
+        ]):
+            wizard = self.env['peppol.registration'].create({})
+            self.assertTrue(wizard.smp_registration)
+            wizard.button_register_peppol_participant()
+        self.assertEqual(self.env.company.account_peppol_proxy_state, 'smp_registration')
+
+        config_wizard = self.env['peppol.config.wizard'].create({})
+        with self._mock_requests([
+            self._mock_participant_status('smp_registration', exists=False)
+        ]):
+            config_wizard.button_peppol_unregister()
+
+        # Should successfully deregister despite Exception
+        self.assertEqual(self.env.company.account_peppol_proxy_state, 'not_registered')
+
+    def test_peppol_commercial_entity(self):
+        company_peppol = self.env["res.company"].create({
+            "name": "test_be",
+            "country_id": self.env.ref("base.be").id,
+        })
+        receivable = self.env["account.account"].create({
+            "account_type": "income",
+            "name": "test_receiv",
+            "code": "TESTR",
+            "company_ids": [Command.link(company_peppol.id)]
+        })
+        payable = self.env["account.account"].create({
+            "account_type": "expense",
+            "name": "test_pay",
+            "code": "TESTP",
+            "company_ids": [Command.link(company_peppol.id)]
+        })
+        partner_view = self.env.ref("base.view_partner_form")
+        self.env["ir.ui.view"].create({
+            "name": "test_inherit",
+            "inherit_id": partner_view.id,
+            "model": "res.partner",
+            "type": "form",
+            "arch": """<xpath expr="//field" position="after">
+                    <field name="commercial_partner_id" />
+                </xpath>"""
+        })
+        env_partner = (self.env["res.partner"]
+            .with_company(company_peppol)
+            .with_context(
+                default_property_account_receivable_id=receivable.id,
+                default_property_account_payable_id=payable.id
+            ))
+        with Form(env_partner, view=partner_view) as partner_form:
+            self.assertEqual(partner_form.peppol_verification_state, "not_verified")
+            partner_form.name = "test"
+            partner_form.vat = "BE0477472701"
+            partner_form.peppol_eas = "odemo"
+            self.assertFalse(partner_form.commercial_partner_id)
+            p_rec = partner_form.save()
+            self.assertEqual(p_rec.commercial_partner_id, p_rec)
+            self.assertEqual(p_rec.commercial_partner_id.name, "test")
