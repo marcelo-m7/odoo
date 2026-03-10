@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Sample service categories -->
+    <record id="category_home_repair" model="service_map.category">
+        <field name="name">Home Repair</field>
+    </record>
+    <record id="category_plumbing" model="service_map.category">
+        <field name="name">Plumbing</field>
+        <field name="parent_id" ref="service_map.category_home_repair"/>
+    </record>
+    <record id="category_electrical" model="service_map.category">
+        <field name="name">Electrical</field>
+        <field name="parent_id" ref="service_map.category_home_repair"/>
+    </record>
+</odoo>

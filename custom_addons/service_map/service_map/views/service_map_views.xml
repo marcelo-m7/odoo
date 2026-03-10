@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+    Placeholder for views.
+    Define tree, form, kanban and search views for your models here.  This file
+    is not referenced in the manifest by default.  When you add views you
+    should uncomment the corresponding line in the manifest.
+    -->
+</odoo>

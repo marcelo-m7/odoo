@@ -1,0 +1,22 @@
+"""Basic access control lists for service_map models.
+
+Model IDs will be automatically created during module installation.  Adjust
+the group assignments and permissions according to your business needs.
+"""
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_service_provider_user,access.service_map.provider.user,model_service_map_provider,base.group_user,1,0,0,0
+access_service_provider_admin,access.service_map.provider.admin,model_service_map_provider,base.group_system,1,1,1,1
+access_service_category_user,access.service_map.category.user,model_service_map_category,base.group_user,1,0,0,0
+access_service_category_admin,access.service_map.category.admin,model_service_map_category,base.group_system,1,1,1,1
+access_service_user,access.service_map.service.user,model_service_map_service,base.group_user,1,0,0,0
+access_service_admin,access.service_map.service.admin,model_service_map_service,base.group_system,1,1,1,1
+access_service_request_user,access.service_map.request.user,model_service_map_request,base.group_user,1,1,1,0
+access_service_request_admin,access.service_map.request.admin,model_service_map_request,base.group_system,1,1,1,1
+access_service_review_user,access.service_map.review.user,model_service_map_review,base.group_user,1,1,1,0
+access_service_review_admin,access.service_map.review.admin,model_service_map_review,base.group_system,1,1,1,1
+access_service_favorite_user,access.service_map.favorite.user,model_service_map_favorite,base.group_user,1,1,1,0
+access_service_favorite_admin,access.service_map.favorite.admin,model_service_map_favorite,base.group_system,1,1,1,1
+access_service_payment_user,access.service_map.payment.user,model_service_map_payment,base.group_user,1,0,0,0
+access_service_payment_admin,access.service_map.payment.admin,model_service_map_payment,base.group_system,1,1,1,1
+access_service_message_user,access.service_map.message.user,model_service_map_message,base.group_user,1,1,1,0
+access_service_message_admin,access.service_map.message.admin,model_service_map_message,base.group_system,1,1,1,1

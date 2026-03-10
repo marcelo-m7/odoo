@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Example Docker compose file to run Odoo with the `service_map` addon.
+# This file is optional and provided as a reference.  Adjust image tags,
+# environment variables and volume mounts to suit your environment.
+
+services:
+  odoo:
+    image: odoo:19
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      - HOST=postgres
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      # Persistent data for the Odoo filestore
+      - odoo-web-data:/var/lib/odoo
+      # Mount the custom addon into the extra addons path.  When running this
+      # blueprint, the current directory is assumed to contain the
+      # `service_map` addon.
+      - ./service_map:/mnt/extra-addons/service_map:ro
+    ports:
+      - '8069:8069'
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  odoo-web-data:
+  postgres-data:
