@@ -12,7 +12,6 @@ import {
 } from "../utils/dom";
 import {
     allowsParagraphRelatedElements,
-    getDeepestPosition,
     isContentEditable,
     isContentEditableAncestor,
     isEmptyBlock,
@@ -28,6 +27,7 @@ import {
     listElementSelector,
     isEditorTab,
     isPhrasingContent,
+    getDeepestEditablePosition,
 } from "../utils/dom_info";
 import {
     childNodes,
@@ -75,6 +75,8 @@ function getConnectedParents(nodes) {
  *
  * @typedef {((container: Element, block: Element) => container)[]} before_insert_processors
  * @typedef {((arg: { nodeToInsert: Node, container: HTMLElement }) => nodeToInsert)[]} node_to_insert_processors
+ *
+ * @typedef {((el: HTMLElement) => boolean)[]} are_inlines_allowed_at_root_predicates
  *
  * @typedef {string[]} system_attributes
  * @typedef {string[]} system_classes
@@ -424,7 +426,7 @@ export class DomPlugin extends Plugin {
         let insertedNodesParents = getConnectedParents(allInsertedNodes);
         for (const parent of insertedNodesParents) {
             if (
-                !this.config.allowInlineAtRoot &&
+                !this.areInlinesAllowedAtRoot(parent) &&
                 this.isEditionBoundary(parent) &&
                 allowsParagraphRelatedElements(parent)
             ) {
@@ -469,7 +471,7 @@ export class DomPlugin extends Plugin {
 
         if (!this.config.allowInlineAtRoot && this.isEditionBoundary(lastPosition[0])) {
             // Correct the position if it happens to be in the editable root.
-            lastPosition = getDeepestPosition(...lastPosition);
+            lastPosition = getDeepestEditablePosition(...lastPosition);
         }
         this.dependencies.selection.setSelection(
             { anchorNode: lastPosition[0], anchorOffset: lastPosition[1] },
@@ -486,6 +488,16 @@ export class DomPlugin extends Plugin {
             return true;
         }
         return isContentEditableAncestor(node);
+    }
+
+    areInlinesAllowedAtRoot(node) {
+        const results = this.getResource("are_inlines_allowed_at_root_predicates")
+            .map((p) => p(node))
+            .filter((r) => r !== undefined);
+        if (!results.length) {
+            return this.config.allowInlineAtRoot;
+        }
+        return results.every((r) => r);
     }
 
     /**

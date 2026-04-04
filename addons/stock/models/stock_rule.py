@@ -257,8 +257,11 @@ class StockRule(models.Model):
         company_id = self.company_id.id
         copied_quantity = move_to_copy.quantity
         final_location_id = False
+        location_dest_id = self.location_dest_id.id
         if move_to_copy.location_final_id and not move_to_copy.location_dest_id._child_of(move_to_copy.location_final_id):
             final_location_id = move_to_copy.location_final_id.id
+        if move_to_copy.location_final_id and move_to_copy.location_final_id._child_of(self.location_dest_id):
+            location_dest_id = move_to_copy.location_final_id.id
         if move_to_copy.product_uom.compare(move_to_copy.product_uom_qty, 0) < 0:
             copied_quantity = move_to_copy.product_uom_qty
         if not company_id:
@@ -267,7 +270,7 @@ class StockRule(models.Model):
             'product_uom_qty': copied_quantity,
             'origin': move_to_copy.origin or move_to_copy.picking_id.name or "/",
             'location_id': move_to_copy.location_dest_id.id,
-            'location_dest_id': self.location_dest_id.id,
+            'location_dest_id': location_dest_id,
             'location_final_id': final_location_id,
             'rule_id': self.id,
             'date': new_date,
@@ -337,12 +340,13 @@ class StockRule(models.Model):
         move_dest_ids = values.get('move_dest_ids') and [(4, x.id) for x in values['move_dest_ids']] or []
 
         # when create chained moves for inter-warehouse transfers, set the warehouses as partners
-        if not partner and move_dest_ids:
+        if move_dest_ids:
             move_dest = values['move_dest_ids']
             if location_dest_id == company_id.internal_transit_location_id:
-                partners = move_dest.location_dest_id.warehouse_id.partner_id
-                if len(partners) == 1:
-                    partner = partners.id
+                if not partner:
+                    partners = move_dest.location_dest_id.warehouse_id.partner_id
+                    if len(partners) == 1:
+                        partner = partners.id
                 move_dest.partner_id = self.location_src_id.warehouse_id.partner_id or self.company_id.partner_id
 
         # If the quantity is negative the move should be considered as a refund

@@ -189,6 +189,8 @@ export class Thread extends Record {
             }
         },
     });
+    /** @type {Boolean|undefined} */
+    has_mail_thread;
     message_main_attachment_id = fields.One("ir.attachment");
     message_needaction_counter = 0;
     message_needaction_counter_bus_id = 0;
@@ -313,6 +315,10 @@ export class Thread extends Record {
             this.typesAllowingCalls.includes(this.channel_type) &&
             !this.correspondent?.persona.eq(this.store.odoobot)
         );
+    }
+
+    get canPostMessage() {
+        return this.hasWriteAccess || (this.hasReadAccess && this.canPostOnReadonly);
     }
 
     /**

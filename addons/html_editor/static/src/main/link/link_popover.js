@@ -47,6 +47,7 @@ export class LinkPopover extends Component {
         allowCustomStyle: { type: Boolean, optional: true },
         allowTargetBlank: { type: Boolean, optional: true },
         allowStripDomain: { type: Boolean, optional: true },
+        publicAttachments: { type: Boolean, optional: true },
         formatColor: { type: Function, optional: true },
     };
     static defaultProps = {
@@ -98,6 +99,14 @@ export class LinkPopover extends Component {
 
         const computedStyle = this.props.document.defaultView.getComputedStyle(linkElement);
         const currentRelValues = linkElement.rel.split(" ");
+        const hasButtonSizeOrShapeOrCustom = this.props.linkElement.className.match(
+            /btn-(lg|sm|xs|custom)|rounded-circle|(?:^|\\s)(outline|fill|flat)(?:\\s|$)/
+        );
+        const buttonType = hasButtonSizeOrShapeOrCustom
+            ? "custom"
+            : this.props.linkElement.className
+                  .match(/btn(-[a-z0-9_-]*)(primary|secondary)/)
+                  ?.pop() || "";
         this.state = useState({
             editing: this.props.LinkPopoverState.editing,
             // `.getAttribute("href")` instead of `.href` to keep relative url
@@ -112,10 +121,7 @@ export class LinkPopover extends Component {
             urlDescription: "",
             linkPreviewName: "",
             imgSrc: "",
-            type:
-                this.props.type ||
-                linkElement.className.match(/btn(-[a-z0-9_-]*)(primary|secondary|custom)/)?.pop() ||
-                "",
+            type: this.props.type || buttonType,
             linkTarget: linkElement.target === "_blank" ? "_blank" : "",
             directDownload: true,
             isDocument: false,
@@ -210,6 +216,10 @@ export class LinkPopover extends Component {
                     },
                     {
                         env: this.__owl__.childEnv,
+                        // `useOverlayServiceOffset` adds 1000 to each sequence value to solve
+                        // overlay visibility in `iframe`, here we increment default sequence (50)
+                        // by 1 and we add 1000 to have color picker always on top of all overlays.
+                        sequence: 1051,
                     }
                 );
             this.customTextColorPicker = createCustomColorPicker(
@@ -403,7 +413,7 @@ export class LinkPopover extends Component {
      */
     async updateDocumentState() {
         const url = this.state.url;
-        const urlObject = URL.parse(url, this.props.document.URL);
+        const urlObject = URL.parse(url, document.URL);
         if (
             url &&
             (url.startsWith("/web/content/") ||
@@ -504,7 +514,7 @@ export class LinkPopover extends Component {
             return;
         }
         try {
-            url = new URL(this.state.url, this.props.document.URL); // relative to absolute
+            url = new URL(this.state.url, document.URL); // relative to absolute
         } catch {
             // Invalid URL, might happen with editor unsuported protocol. eg type
             // `geo:37.786971,-122.399677`, become `http://geo:37.786971,-122.399677`
@@ -664,7 +674,7 @@ export class LinkPopover extends Component {
     async uploadFile() {
         const { upload, getURL } = this.uploadService;
         const { resModel, resId } = this.props.recordInfo;
-        const [attachment] = await upload({ resModel, resId, accessToken: true });
+        const [attachment] = await upload({ resModel, resId }, { accessToken: true });
         if (!attachment) {
             // No file selected or upload failed
             return;
