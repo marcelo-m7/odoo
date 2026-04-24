@@ -865,9 +865,9 @@ class ProjectTask(models.Model):
             if task.allow_milestones:
                 vals['milestone_id'] = milestone_mapping.get(vals['milestone_id'], vals['milestone_id'])
             if not default.get('child_ids') and task.child_ids:
-                default = {
-                    'parent_id': False,
-                }
+                whitelisted_fields = self._get_template_default_context_whitelist() if self.env.context.get('copy_from_template') else []
+                default = {key: value for key, value in default.items() if key in whitelisted_fields}
+                default['parent_id'] = False
                 current_task = task
                 if self.env.context.get('copy_from_template'):
                     current_task = current_task.with_context(active_test=True)
@@ -2080,6 +2080,24 @@ class ProjectTask(models.Model):
         if child_tasks:
             child_tasks.action_archive()
         return super().action_archive()
+
+    def _get_access_action(self, access_uid=None, force_website=False):
+        self.ensure_one()
+        user = self.env['res.users'].sudo().browse(access_uid) if access_uid else self.env.user
+        if (
+            user
+            and user._is_portal()
+            and self.with_user(user).has_access('read')
+            and self.project_id
+            and self.project_id.with_user(user).has_access('read')
+            and self.project_id._check_project_sharing_access()
+        ):
+            return {
+                'type': 'ir.actions.act_url',
+                'url': f'/my/projects/{self.project_id.id}/project_sharing/{self.id}',
+                'target': 'self',
+            }
+        return super()._get_access_action(access_uid, force_website)
 
     # ---------------------------------------------------
     # Rating business

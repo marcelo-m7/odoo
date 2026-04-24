@@ -532,7 +532,9 @@ class AccountMoveLine(models.Model):
     def _compute_name(self):
         def get_name(line):
             values = []
-            if line.partner_id.lang:
+            if line.move_id.partner_id.lang:
+                product = line.product_id.with_context(lang=line.move_id.partner_id.lang)
+            elif line.partner_id.lang:
                 product = line.product_id.with_context(lang=line.partner_id.lang)
             else:
                 product = line.product_id
@@ -769,14 +771,22 @@ class AccountMoveLine(models.Model):
         # get the where clause
         query = self._search(self.env.context.get('domain_cumulated_balance') or [], bypass_access=True)
         sql_order = self._order_to_sql(self.env.context.get('order_cumulated_balance'), query, reverse=True)
-        result = dict(self.env.execute_query(query.select(
+
+        subquery = query.subselect(
             SQL.identifier(query.table, "id"),
             SQL(
                 "SUM(%s) OVER (ORDER BY %s ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
                 SQL.identifier(query.table, "balance"),
                 sql_order,
             ),
-        )))
+        )
+        result = dict(self.env.execute_query(
+            SQL(
+                "SELECT * FROM (%(subquery)s) AS aml WHERE id = ANY(%(ids)s)",
+                subquery=subquery,
+                ids=self.ids,
+            ),
+        ))
         for record in self:
             record.cumulated_balance = result[record.id]
 
@@ -3077,7 +3087,7 @@ class AccountMoveLine(models.Model):
                 exchange_moves_to_post |= exchange_move
 
         if exchange_moves_to_post:
-            exchange_moves_to_post._post(soft=False)
+            exchange_moves_to_post.with_context(validate_analytic=False)._post(soft=False)
 
         return exchange_moves
 
